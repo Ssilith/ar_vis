@@ -14,10 +14,6 @@ class ExampleApp extends StatefulWidget {
 }
 
 class _ExampleAppState extends State<ExampleApp> {
-  // When converting between strings and numbers in a message protocol
-  // always use a fixed locale, to prevent unexpected parsing errors when
-  // the user's locale is different to the locale used by the developer
-  // (eg the decimal separator might be different)
   static final _fixedLocaleNumberFormatter = NumberFormat.decimalPatternDigits(
     locale: 'en_gb',
     decimalDigits: 2,
@@ -25,20 +21,26 @@ class _ExampleAppState extends State<ExampleApp> {
 
   bool? _isUnityArSupportedOnDevice;
   bool _isArSceneActive = false;
-  double _rotationSpeed = 30;
-  int _numberOfTaps = 0;
+  double _rotation = 30;
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      themeMode: ThemeMode.dark,
+      theme: ThemeData(
+        brightness: Brightness.light,
+        useMaterial3: true,
+        colorSchemeSeed: Colors.indigo,
+      ),
       home: Scaffold(
         appBar: AppBar(
-          title: const Text('Plugin example app'),
+          centerTitle: true,
+          title: const Text('Home visualization'),
         ),
         body: SafeArea(
           child: Builder(
             builder: (context) {
-              final theme = Theme.of(context);
               final bool? isUnityArSupportedOnDevice =
                   _isUnityArSupportedOnDevice;
               final String arStatusMessage;
@@ -57,12 +59,8 @@ class _ExampleAppState extends State<ExampleApp> {
                     child: EmbedUnity(
                       onMessageFromUnity: (String data) {
                         // A message has been received from a Unity script
-                        if (data == "touch") {
-                          setState(() {
-                            _numberOfTaps += 1;
-                          });
-                        } else if (data == "scene_loaded") {
-                          _sendRotationSpeedToUnity(_rotationSpeed);
+                        if (data == "scene_loaded") {
+                          _sendRotationToUnity(_rotation);
                         } else if (data == "ar:true") {
                           setState(() {
                             _isUnityArSupportedOnDevice = true;
@@ -75,14 +73,14 @@ class _ExampleAppState extends State<ExampleApp> {
                       },
                     ),
                   ),
-                  Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Text(
-                      "Flutter logo has been touched $_numberOfTaps times",
-                      textAlign: TextAlign.center,
-                      style: theme.textTheme.titleMedium,
-                    ),
-                  ),
+                  // Padding(
+                  //   padding: const EdgeInsets.all(16),
+                  //   child: Text(
+                  //     "Flutter logo has been touched $_numberOfTaps times",
+                  //     textAlign: TextAlign.center,
+                  //     style: theme.textTheme.titleMedium,
+                  //   ),
+                  // ),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     child: Row(
@@ -114,19 +112,19 @@ class _ExampleAppState extends State<ExampleApp> {
                       const Padding(
                         padding: EdgeInsets.only(left: 16),
                         child: Text(
-                          "Speed",
+                          "Rotation",
                         ),
                       ),
                       Expanded(
                         child: Slider(
                           min: -200,
                           max: 200,
-                          value: _rotationSpeed,
+                          value: _rotation,
                           onChanged: (value) {
                             setState(() {
-                              _rotationSpeed = value;
+                              _rotation = value;
                             });
-                            _sendRotationSpeedToUnity(value);
+                            _sendRotationToUnity(value);
                           },
                         ),
                       ),
@@ -156,24 +154,8 @@ class _ExampleAppState extends State<ExampleApp> {
                           ),
                         ),
                       ),
-                      Expanded(
-                        child: Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: ElevatedButton(
-                            onPressed: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (context) => const Route2()),
-                              );
-                            },
-                            child: const Text("Open route 2",
-                                textAlign: TextAlign.center),
-                          ),
-                        ),
-                      ),
                     ],
-                  )
+                  ),
                 ],
               );
             },
@@ -183,84 +165,11 @@ class _ExampleAppState extends State<ExampleApp> {
     );
   }
 
-  void _sendRotationSpeedToUnity(double rotationSpeed) {
+  void _sendRotationToUnity(double rotation) {
     sendToUnity(
       "FlutterLogo",
-      "SetRotationSpeed",
-      _fixedLocaleNumberFormatter.format(rotationSpeed),
-    );
-  }
-}
-
-class Route2 extends StatelessWidget {
-  const Route2();
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-        appBar: AppBar(
-          title: const Text('Route 2'),
-        ),
-        body: SafeArea(
-          child: Builder(
-              builder: (context) => Column(
-                    children: [
-                      const Padding(
-                        padding: EdgeInsets.all(16),
-                        child: Text(
-                          "Unity can only be shown in 1 widget at a time. Therefore if a second route "
-                          "with a FlutterEmbed is pushed onto the stack, Unity is 'detached' from "
-                          "the first route, and attached to the second. When the second route is "
-                          "popped from the stack, Unity is reattached to the first route.",
-                        ),
-                      ),
-                      const Expanded(
-                        child: EmbedUnity(),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            const BackButton(),
-                            ElevatedButton(
-                              onPressed: () {
-                                showDialog(
-                                    context: context,
-                                    builder: (_) => const Route3());
-                              },
-                              child: const Text("Open route 3",
-                                  textAlign: TextAlign.center),
-                            ),
-                          ],
-                        ),
-                      )
-                    ],
-                  )),
-        ));
-  }
-}
-
-class Route3 extends StatelessWidget {
-  const Route3();
-
-  @override
-  Widget build(BuildContext context) {
-    return const AlertDialog(
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            "Route 3",
-            textAlign: TextAlign.center,
-          ),
-          SizedBox(
-            height: 100,
-            width: 80,
-            child: EmbedUnity(),
-          ),
-        ],
-      ),
+      "SetRotation",
+      _fixedLocaleNumberFormatter.format(rotation),
     );
   }
 }
