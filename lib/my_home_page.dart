@@ -111,8 +111,8 @@ class _MyHomePageState extends State<MyHomePage> {
                     ),
                     Expanded(
                       child: Slider(
-                        min: -200,
-                        max: 200,
+                        min: -180,
+                        max: 180,
                         value: _rotation,
                         onChanged: _onRotationChanged,
                       ),
