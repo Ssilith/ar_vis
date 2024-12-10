@@ -2,6 +2,7 @@ import 'package:ar_vis/joystick.dart';
 import 'package:ar_vis/my_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_embed_unity/flutter_embed_unity.dart';
+import 'package:flutter_material_design_icons/flutter_material_design_icons.dart';
 import 'package:intl/intl.dart';
 
 class MyHomePage extends StatefulWidget {
@@ -31,6 +32,10 @@ class _MyHomePageState extends State<MyHomePage> {
         ? "supported"
         : "not supported on this device";
   }
+
+  double scale = 1.0;
+
+  List<double> scales = [0.1, 0.2, 0.3, 0.5, 0.7, 1.0];
 
   @override
   Widget build(BuildContext context) {
@@ -67,7 +72,6 @@ class _MyHomePageState extends State<MyHomePage> {
                     ],
                   ),
                 ),
-
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   child: Row(
@@ -101,20 +105,53 @@ class _MyHomePageState extends State<MyHomePage> {
                     ],
                   ),
                 ),
-
-                // Rotation control slider
                 Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Padding(
-                      padding: EdgeInsets.only(left: 16.0),
-                      child: Icon(Icons.rotate_left),
-                    ),
+                    // Rotation control slider
                     Expanded(
-                      child: Slider(
-                        min: -180,
-                        max: 180,
-                        value: _rotation,
-                        onChanged: _onRotationChanged,
+                      child: Row(
+                        children: [
+                          const Padding(
+                            padding: EdgeInsets.only(left: 16.0),
+                            child: Icon(MdiIcons.rotate360),
+                          ),
+                          Expanded(
+                            child: Slider(
+                              min: -180,
+                              max: 180,
+                              value: _rotation,
+                              onChanged: _onRotationChanged,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    // Scale dropdown
+                    Padding(
+                      padding: const EdgeInsets.only(right: 16),
+                      child: Row(
+                        children: [
+                          const Icon(MdiIcons.resize),
+                          SizedBox(
+                            width: 50,
+                            child: DropdownButton(
+                              value: scale,
+                              items: scales.map((double items) {
+                                return DropdownMenuItem(
+                                  value: items,
+                                  child: Text(items.toString()),
+                                );
+                              }).toList(),
+                              onChanged: (double? newValue) {
+                                setState(() {
+                                  scale = newValue!;
+                                });
+                                _sendScaleToUnity(scale);
+                              },
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ],
@@ -150,6 +187,7 @@ class _MyHomePageState extends State<MyHomePage> {
           : "FlutterEmbedExampleSceneAR",
     );
     setState(() {
+      scale = 1.0;
       _isArSceneActive = value;
     });
   }
@@ -167,6 +205,7 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   void _onResumePressed() {
+    setState(() => scale = 1.0);
     resumeUnity();
     _enableARControl();
   }
@@ -185,6 +224,7 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   void _sendScaleToUnity(double scale) {
+    sendToUnity("FlutterLogo", "SetControlledByFlutter", "true");
     sendToUnity(
       "FlutterLogo",
       "SetScale",

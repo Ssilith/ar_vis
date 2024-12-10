@@ -15,10 +15,10 @@ class _JoystickMoveState extends State<JoystickMove> {
   @override
   Widget build(BuildContext context) {
     return Joystick(
-      stick: const JoystickStick(size: 20),
+      stick: const JoystickStick(size: 35),
       base: Container(
-        width: 50,
-        height: 50,
+        width: 80,
+        height: 80,
         decoration: const BoxDecoration(
           color: Colors.grey,
           shape: BoxShape.circle,
