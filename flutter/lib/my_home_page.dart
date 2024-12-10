@@ -17,6 +17,7 @@ class _MyHomePageState extends State<MyHomePage> {
   bool _isArSceneActive = false;
   double _rotation = 0;
   double _xPosition = 0.0;
+  double _yPosition = 0.0;
   double _zPosition = 0.0;
   final double step = 0.1;
 
@@ -33,8 +34,7 @@ class _MyHomePageState extends State<MyHomePage> {
         : "not supported on this device";
   }
 
-  double scale = 1.0;
-
+  double _scale = 1.0;
   List<double> scales = [0.1, 0.2, 0.3, 0.5, 0.7, 1.0];
 
   @override
@@ -136,7 +136,7 @@ class _MyHomePageState extends State<MyHomePage> {
                           SizedBox(
                             width: 50,
                             child: DropdownButton(
-                              value: scale,
+                              value: _scale,
                               items: scales.map((double items) {
                                 return DropdownMenuItem(
                                   value: items,
@@ -144,10 +144,8 @@ class _MyHomePageState extends State<MyHomePage> {
                                 );
                               }).toList(),
                               onChanged: (double? newValue) {
-                                setState(() {
-                                  scale = newValue!;
-                                });
-                                _sendScaleToUnity(scale);
+                                setState(() => _scale = newValue!);
+                                _sendScaleToUnity(_scale);
                               },
                             ),
                           ),
@@ -175,10 +173,44 @@ class _MyHomePageState extends State<MyHomePage> {
       setState(() {
         _isUnityArSupportedOnDevice = false;
       });
+    } else if (data.contains("scale")) {
+      _setDefaultScale(data);
+    } else if (data.contains("position:")) {
+      _setDefaultPosition(data);
+    }
+  }
+
+  void _setDefaultScale(String data) {
+    setState(() {
+      double newScale = double.parse(
+          (double.tryParse(data.split(":")[1]) ?? 1.0).toStringAsFixed(1));
+      if (!scales.contains(newScale)) {
+        scales.add(newScale);
+        scales.sort();
+      }
+      _scale = newScale;
+    });
+  }
+
+  void _setDefaultPosition(String data) {
+    String positionData =
+        data.substring(data.indexOf("position:") + "position:".length).trim();
+    positionData = positionData.replaceAll("(", "").replaceAll(")", "");
+    List<String> coordinates = positionData.split(",");
+    if (coordinates.length == 3) {
+      double x = double.tryParse(coordinates[0].trim()) ?? 0.0;
+      double y = double.tryParse(coordinates[1].trim()) ?? 0.0;
+      double z = double.tryParse(coordinates[2].trim()) ?? 0.0;
+      setState(() {
+        _xPosition = x;
+        _yPosition = y;
+        _zPosition = z;
+      });
     }
   }
 
   void _onArSceneSwitchChanged(bool value) {
+    _enableARControl();
     sendToUnity(
       "SceneSwitcher",
       "SwitchToScene",
@@ -187,15 +219,13 @@ class _MyHomePageState extends State<MyHomePage> {
           : "FlutterEmbedExampleSceneAR",
     );
     setState(() {
-      scale = 1.0;
+      _scale = 1.0;
       _isArSceneActive = value;
     });
   }
 
   void _onRotationChanged(double value) {
-    setState(() {
-      _rotation = value;
-    });
+    setState(() => _rotation = value);
     _sendRotationToUnity(value);
   }
 
@@ -205,7 +235,6 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   void _onResumePressed() {
-    setState(() => scale = 1.0);
     resumeUnity();
     _enableARControl();
   }
@@ -220,7 +249,8 @@ class _MyHomePageState extends State<MyHomePage> {
 
   void _sendPositionToUnity() {
     sendToUnity("FlutterLogo", "SetControlledByFlutter", "true");
-    sendToUnity("FlutterLogo", "SetPosition", "$_xPosition,0.0,$_zPosition");
+    sendToUnity(
+        "FlutterLogo", "SetPosition", "$_xPosition,$_yPosition,$_zPosition");
   }
 
   void _sendScaleToUnity(double scale) {

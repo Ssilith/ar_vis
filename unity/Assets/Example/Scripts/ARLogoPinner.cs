@@ -34,6 +34,8 @@ public class ARLogoPinner : MonoBehaviour
             float scaleRelativeToDistance = hits[0].distance / 8f;
             flutterLogo.transform.localScale = new Vector3(scaleRelativeToDistance, scaleRelativeToDistance, scaleRelativeToDistance);
             haveFoundSurface = true;
+            SendToFlutter.Send("scale:" + flutterLogo.transform.localScale.x.ToString());
+            SendToFlutter.Send("position:" + flutterLogo.transform.position.ToString());
         }
         else if (!haveFoundSurface)
         {
@@ -41,6 +43,8 @@ public class ARLogoPinner : MonoBehaviour
                 new Vector3(noSurfaceMannequinPositionX, noSurfaceMannequinPositionY, noSurfaceMannequinDistanceFromCamera)
             );
             flutterLogo.transform.localScale = Vector3.one;
+            SendToFlutter.Send("scale:" + flutterLogo.transform.localScale.x.ToString());
+            SendToFlutter.Send("position:" + flutterLogo.transform.position.ToString());
         }
     }
 
