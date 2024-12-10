@@ -29,9 +29,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   String get arStatusMessage {
     if (_isUnityArSupportedOnDevice == null) return "checking...";
-    return _isUnityArSupportedOnDevice!
-        ? "supported"
-        : "not supported on this device";
+    return _isUnityArSupportedOnDevice! ? "supported" : "not supported";
   }
 
   double _scale = 1.0;
