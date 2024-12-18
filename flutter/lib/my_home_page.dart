@@ -1,4 +1,5 @@
 import 'package:ar_vis/joystick.dart';
+import 'package:ar_vis/multiuse_tooltip.dart';
 import 'package:ar_vis/my_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_embed_unity/flutter_embed_unity.dart';
@@ -35,6 +36,8 @@ class _MyHomePageState extends State<MyHomePage> {
   double _scale = 1.0;
   List<double> scales = [0.1, 0.2, 0.3, 0.5, 0.7, 1.0];
 
+  String _houseInfo = "";
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -50,7 +53,6 @@ class _MyHomePageState extends State<MyHomePage> {
                       EmbedUnity(
                         onMessageFromUnity: _handleUnityMessage,
                       ),
-
                       // Joystick for movement
                       Positioned(
                         bottom: 10,
@@ -87,9 +89,15 @@ class _MyHomePageState extends State<MyHomePage> {
                           ),
                         ],
                       ),
-                      // Pause/Resume buttons
+                      // Pause/Resume buttons and info
                       Row(
                         children: [
+                          MultiuseTooltip(
+                            message: _houseInfo,
+                            child: const MyButton(
+                              iconData: Icons.info_outline,
+                            ),
+                          ),
                           MyButton(
                             onTap: _onPausePressed,
                             iconData: Icons.pause,
@@ -164,17 +172,15 @@ class _MyHomePageState extends State<MyHomePage> {
     if (data == "scene_loaded") {
       _sendRotationToUnity(_rotation);
     } else if (data == "ar:true") {
-      setState(() {
-        _isUnityArSupportedOnDevice = true;
-      });
+      setState(() => _isUnityArSupportedOnDevice = true);
     } else if (data == "ar:false") {
-      setState(() {
-        _isUnityArSupportedOnDevice = false;
-      });
+      setState(() => _isUnityArSupportedOnDevice = false);
     } else if (data.contains("scale")) {
       _setDefaultScale(data);
     } else if (data.contains("position:")) {
       _setDefaultPosition(data);
+    } else if (data.contains("info:")) {
+      _setMessageInfo(data);
     }
   }
 
@@ -205,6 +211,11 @@ class _MyHomePageState extends State<MyHomePage> {
         _zPosition = z;
       });
     }
+  }
+
+  void _setMessageInfo(String data) {
+    String info = data.substring(data.indexOf("info:") + "info:".length).trim();
+    setState(() => _houseInfo = info);
   }
 
   void _onArSceneSwitchChanged(bool value) {
