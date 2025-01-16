@@ -8,12 +8,13 @@ namespace Assets.Scripts
     {
         [SerializeField] ARSession arSession;
 
-        void Start() 
+        void Start()
         {
             StartCoroutine(CheckAvailabilityCoroutine());
         }
 
-        IEnumerator CheckAvailabilityCoroutine() {
+        IEnumerator CheckAvailabilityCoroutine()
+        {
             if ((ARSession.state == ARSessionState.None) ||
                 (ARSession.state == ARSessionState.CheckingAvailability) ||
                 (ARSession.state == ARSessionState.Installing))
@@ -28,7 +29,7 @@ namespace Assets.Scripts
             else
             {
                 SendToFlutter.Send("ar:true");
-                SendToFlutter.Send("info:This is a two-story modern house with a flat roof and a large balcony on the upper floor, featuring railings across its length. The lower floor includes an open patio area, pillars supporting the structure, and a large garage-style door on the right side.");
+                SendToFlutter.Send("info:Fallingwater to modernistyczny dom zaprojektowany w 1935 roku (a budowany w latach 1936-39) przez amerykańskiego architekta Franka Lloyda Wrighta. Dom leży nad wodospadem na potoku Bear Run rzeki Youghiogheny w stanie Pensylwania w Stanach Zjednoczonych. Fallingwater jest uważany za jedno z największych dzieł architekta, między innymi dzięki zintegrowaniu architektury z naturą oraz nietypowej bryle budynku.");
             }
         }
     }
